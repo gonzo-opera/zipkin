@@ -100,7 +100,7 @@ final class ElasticsearchSpanStore implements SpanStore, Traces, ServiceAndSpanN
     // be no significant difference in user experience since span start times are usually very
     // close to each other in human time.
     Aggregation traceIdTimestamp =
-      Aggregation.terms("traceId", request.limit())
+      Aggregation.terms("traceId", request.limit(), "map")
         .addSubAggregation(Aggregation.min("timestamp_millis"))
         .orderBy("timestamp_millis", "desc");
 
