@@ -92,7 +92,7 @@ public class Aggregation {
       return size;
     }
 
-    public String getExecutionHint() {
+    public String getExecution_hint() {
       return execution_hint;
     }
 
