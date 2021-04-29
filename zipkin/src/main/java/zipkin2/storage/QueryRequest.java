@@ -413,7 +413,7 @@ public final class QueryRequest {
     if (!annotationQuery.isEmpty()) result += ("annotationQuery=" + annotationQuery + ", ");
     if (minDuration != null) result += ("minDuration=" + minDuration + ", ");
     if (maxDuration != null) result += ("maxDuration=" + maxDuration + ", ");
-    if (executionHint!=null) result += ("executionHint=" + executionHint + ", ");
+    if (executionHint != null) result += ("executionHint=" + executionHint + ", ");
     return result + "limit=" + limit + "}";
   }
 }
