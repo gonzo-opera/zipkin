@@ -70,8 +70,7 @@ public class Aggregation {
     }
 
     AggTerms(String field, int size, String execution_hint) {
-      this.field = field;
-      this.size = size;
+      this(field, size);
       this.execution_hint = execution_hint;
     }
 
