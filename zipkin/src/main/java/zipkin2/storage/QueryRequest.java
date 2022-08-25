@@ -113,6 +113,13 @@ public final class QueryRequest {
   }
 
   /**
+   * Aggregation query execution hint.
+   */
+  @Nullable public String executionHint() {
+    return executionHint;
+  }
+
+  /**
    * Corresponds to query parameter "annotationQuery". Ex. "http.method=GET and error"
    *
    * @see QueryRequest.Builder#parseAnnotationQuery(String)
@@ -140,7 +147,7 @@ public final class QueryRequest {
   }
 
   public static final class Builder {
-    String serviceName, remoteServiceName, spanName;
+    String serviceName, remoteServiceName, spanName, executionHint;
     Map<String, String> annotationQuery = Collections.emptyMap();
     Long minDuration, maxDuration;
     long endTs, lookback;
@@ -156,6 +163,7 @@ public final class QueryRequest {
       endTs = source.endTs;
       lookback = source.lookback;
       limit = source.limit;
+      executionHint = source.executionHint;
     }
 
     /** @see QueryRequest#serviceName() */
@@ -242,11 +250,19 @@ public final class QueryRequest {
       return this;
     }
 
+    /** @see QueryRequest#executionHint() */
+    public Builder executionHint(@Nullable String executionHint) {
+      this.executionHint = executionHint;
+      return this;
+    }
+
     public final QueryRequest build() {
       // coerce service and span names to lowercase
       if (serviceName != null) serviceName = serviceName.toLowerCase(Locale.ROOT);
       if (remoteServiceName != null) remoteServiceName = remoteServiceName.toLowerCase(Locale.ROOT);
       if (spanName != null) spanName = spanName.toLowerCase(Locale.ROOT);
+
+      if (!"map".equals(executionHint) && !"global_ordinals".equals(executionHint)) executionHint = null;
 
       // remove any accidental empty strings
       annotationQuery.remove("");
@@ -275,7 +291,8 @@ public final class QueryRequest {
         maxDuration,
         endTs,
         lookback,
-        limit
+        limit,
+        executionHint
       );
     }
 
@@ -355,7 +372,7 @@ public final class QueryRequest {
       && testedDuration;
   }
 
-  final String serviceName, remoteServiceName, spanName;
+  final String serviceName, remoteServiceName, spanName, executionHint;
   final Map<String, String> annotationQuery;
   final Long minDuration, maxDuration;
   final long endTs, lookback;
@@ -370,7 +387,8 @@ public final class QueryRequest {
     @Nullable Long maxDuration,
     long endTs,
     long lookback,
-    int limit) {
+    int limit,
+    @Nullable String executionHint) {
     this.serviceName = serviceName;
     this.remoteServiceName = remoteServiceName;
     this.spanName = spanName;
@@ -380,20 +398,21 @@ public final class QueryRequest {
     this.endTs = endTs;
     this.lookback = lookback;
     this.limit = limit;
+    this.executionHint = executionHint;
   }
 
   @Override
   public String toString() {
-    return "QueryRequest{"
-      + "serviceName=" + serviceName + ", "
-      + "remoteServiceName=" + remoteServiceName + ", "
-      + "spanName=" + spanName + ", "
-      + "annotationQuery=" + annotationQuery + ", "
-      + "minDuration=" + minDuration + ", "
-      + "maxDuration=" + maxDuration + ", "
-      + "endTs=" + endTs + ", "
-      + "lookback=" + lookback + ", "
-      + "limit=" + limit
-      + "}";
+    String result = "QueryRequest{";
+    result += ("endTs=" + endTs + ", ");
+    result += ("lookback=" + lookback + ", ");
+    if (serviceName != null) result += ("serviceName=" + serviceName + ", ");
+    if (remoteServiceName != null) result += ("remoteServiceName=" + remoteServiceName + ", ");
+    if (spanName != null) result += ("spanName=" + spanName + ", ");
+    if (!annotationQuery.isEmpty()) result += ("annotationQuery=" + annotationQuery + ", ");
+    if (minDuration != null) result += ("minDuration=" + minDuration + ", ");
+    if (maxDuration != null) result += ("maxDuration=" + maxDuration + ", ");
+    if (executionHint != null) result += ("executionHint=" + executionHint + ", ");
+    return result + "limit=" + limit + "}";
   }
 }

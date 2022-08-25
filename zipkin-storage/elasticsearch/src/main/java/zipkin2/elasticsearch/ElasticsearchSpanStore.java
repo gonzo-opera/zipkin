@@ -99,10 +99,17 @@ final class ElasticsearchSpanStore implements SpanStore, Traces, ServiceAndSpanN
     // So we fudge and order on the first span among the filtered spans - in practice, there should
     // be no significant difference in user experience since span start times are usually very
     // close to each other in human time.
-    Aggregation traceIdTimestamp =
-      Aggregation.terms("traceId", request.limit())
+    Aggregation traceIdTimestamp;
+    if (request.executionHint() != null) {
+      traceIdTimestamp = Aggregation.terms("traceId", request.limit(), request.executionHint())
         .addSubAggregation(Aggregation.min("timestamp_millis"))
         .orderBy("timestamp_millis", "desc");
+    }
+    else{
+      traceIdTimestamp = Aggregation.terms("traceId", request.limit())
+        .addSubAggregation(Aggregation.min("timestamp_millis"))
+        .orderBy("timestamp_millis", "desc");
+    }
 
     List<String> indices = indexNameFormatter.formatTypeAndRange(TYPE_SPAN, beginMillis, endMillis);
     if (indices.isEmpty()) return Call.emptyList();

@@ -64,6 +64,7 @@ public class ZipkinQueryApiV2 {
    */
   final int namesMaxAge;
   final List<String> autocompleteKeys;
+  final String executionHint;
 
   volatile int serviceCount; // used as a threshold to start returning cache-control headers
 
@@ -72,13 +73,15 @@ public class ZipkinQueryApiV2 {
     @Value("${zipkin.storage.type:mem}") String storageType,
     @Value("${zipkin.query.lookback:86400000}") long defaultLookback, // 1 day in millis
     @Value("${zipkin.query.names-max-age:300}") int namesMaxAge, // 5 minutes
-    @Value("${zipkin.storage.autocomplete-keys:}") List<String> autocompleteKeys
+    @Value("${zipkin.storage.autocomplete-keys:}") List<String> autocompleteKeys,
+    @Value("${zipkin.query.execution.hint:}") String executionHint
   ) {
     this.storage = storage;
     this.storageType = storageType;
     this.defaultLookback = defaultLookback;
     this.namesMaxAge = namesMaxAge;
     this.autocompleteKeys = autocompleteKeys;
+    this.executionHint = executionHint;
   }
 
   @Get("/api/v2/dependencies")
@@ -142,6 +145,7 @@ public class ZipkinQueryApiV2 {
         .endTs(endTs.orElse(System.currentTimeMillis()))
         .lookback(lookback.orElse(defaultLookback))
         .limit(limit)
+        .executionHint(executionHint)
         .build();
 
     List<List<Span>> traces = storage.spanStore().getTraces(queryRequest).execute();

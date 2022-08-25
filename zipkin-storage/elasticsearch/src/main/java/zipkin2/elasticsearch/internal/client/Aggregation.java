@@ -34,6 +34,12 @@ public class Aggregation {
     return result;
   }
 
+  public static Aggregation terms(String field, int size, String execution_hint) {
+    Aggregation result = new Aggregation(field);
+    result.terms = new AggTerms(field, size, execution_hint);
+    return result;
+  }
+
   public Aggregation orderBy(String subAgg, String direction) {
     terms.order(subAgg, direction);
     return this;
@@ -63,8 +69,14 @@ public class Aggregation {
       this.size = size;
     }
 
+    AggTerms(String field, int size, String execution_hint) {
+      this(field, size);
+      this.execution_hint = execution_hint;
+    }
+
     final String field;
     final int size;
+    String execution_hint;
     Map<String, String> order;
 
     void order(String agg, String direction) {
@@ -77,6 +89,10 @@ public class Aggregation {
 
     public int getSize() {
       return size;
+    }
+
+    public String getExecution_hint() {
+      return execution_hint;
     }
 
     public Map<String, String> getOrder() {
