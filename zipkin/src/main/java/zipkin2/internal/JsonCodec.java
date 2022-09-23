@@ -23,6 +23,7 @@ import java.util.List;
 import static com.google.gson.stream.JsonToken.BOOLEAN;
 import static com.google.gson.stream.JsonToken.NULL;
 import static com.google.gson.stream.JsonToken.STRING;
+import static com.google.gson.stream.JsonToken.NUMBER;
 import static java.lang.String.format;
 
 /**
@@ -105,6 +106,10 @@ public final class JsonCodec {
 
     public boolean peekBoolean() throws IOException {
       return delegate.peek() == BOOLEAN;
+    }
+
+    public boolean peekNumber() throws IOException {
+      return delegate.peek() == NUMBER;
     }
 
     public boolean peekNull() throws IOException {

@@ -128,6 +128,7 @@ public final class V1JsonSpanReader implements JsonReaderAdapter<V1Span> {
     Endpoint endpoint = null;
     Boolean booleanValue = null;
     String stringValue = null;
+    String numberValue = null;
 
     reader.beginObject();
     while (reader.hasNext()) {
@@ -144,6 +145,8 @@ public final class V1JsonSpanReader implements JsonReaderAdapter<V1Span> {
           stringValue = reader.nextString();
         } else if (reader.peekBoolean()) {
           booleanValue = reader.nextBoolean();
+        } else if (reader.peekNumber()) {
+          numberValue = reader.nextString();
         } else {
           reader.skipValue();
         }
@@ -165,6 +168,9 @@ public final class V1JsonSpanReader implements JsonReaderAdapter<V1Span> {
       if (key.equals("sa") || key.equals("ca") || key.equals("ma")) {
         builder.addBinaryAnnotation(key, endpoint);
       }
+    } else if (numberValue != null) {
+      builder.addBinaryAnnotation(key, numberValue, endpoint);
     }
+
   }
 }

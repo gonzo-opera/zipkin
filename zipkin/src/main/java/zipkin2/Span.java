@@ -60,7 +60,7 @@ import static zipkin2.internal.HexCodec.HEX_DIGITS;
  * and smaller data.
  */
 //@Immutable
-public final class Span implements Serializable { // for Spark and Flink jobs
+public class Span implements Serializable { // for Spark and Flink jobs
   static final Charset UTF_8 = Charset.forName("UTF-8");
   static final Endpoint EMPTY_ENDPOINT = Endpoint.newBuilder().build();
 
@@ -744,7 +744,7 @@ public final class Span implements Serializable { // for Spark and Flink jobs
   final Map<String, String> tags;
   final int flags; // bit field for timestamp and duration, saving 2 object references
 
-  Span(Builder builder) {
+  public Span(Builder builder) {
     traceId = builder.traceId;
     // prevent self-referencing spans
     parentId = builder.id.equals(builder.parentId) ? null : builder.parentId;

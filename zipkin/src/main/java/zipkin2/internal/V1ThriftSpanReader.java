@@ -16,6 +16,7 @@ package zipkin2.internal;
 import zipkin2.Endpoint;
 import zipkin2.v1.V1Span;
 
+import static zipkin2.internal.JsonCodec.UTF_8;
 import static zipkin2.internal.ThriftCodec.readListLength;
 import static zipkin2.internal.ThriftCodec.skip;
 import static zipkin2.internal.ThriftField.TYPE_I32;
@@ -33,6 +34,9 @@ import static zipkin2.internal.V1ThriftSpanWriter.PARENT_ID;
 import static zipkin2.internal.V1ThriftSpanWriter.TIMESTAMP;
 import static zipkin2.internal.V1ThriftSpanWriter.TRACE_ID;
 import static zipkin2.internal.V1ThriftSpanWriter.TRACE_ID_HIGH;
+import java.nio.charset.Charset;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public final class V1ThriftSpanReader {
   static final String ONE = Character.toString((char) 1);
@@ -122,6 +126,8 @@ public final class V1ThriftSpanReader {
   }
 
   static final class BinaryAnnotationReader {
+
+    public static final Charset UTF_8 = Charset.forName("UTF-8");
     static final ThriftField KEY = new ThriftField(TYPE_STRING, 1);
     static final ThriftField VALUE = new ThriftField(TYPE_STRING, 2);
     static final ThriftField TYPE = new ThriftField(TYPE_I32, 3);
@@ -129,10 +135,15 @@ public final class V1ThriftSpanReader {
 
     static void read(ReadBuffer buffer, V1Span.Builder builder) {
       String key = null;
-      String value = null;
+      byte[] value = null;
       Endpoint endpoint = null;
       boolean isBoolean = false;
       boolean isString = false;
+      boolean isI16 = false;
+      boolean isI32 = false;
+      boolean isI64 = false;
+      boolean isDouble = false;
+      boolean isByte = false;
 
       while (true) {
         ThriftField thriftField = ThriftField.read(buffer);
@@ -140,14 +151,30 @@ public final class V1ThriftSpanReader {
         if (thriftField.isEqualTo(KEY)) {
           key = buffer.readUtf8(buffer.readInt());
         } else if (thriftField.isEqualTo(VALUE)) {
-          value = buffer.readUtf8(buffer.readInt());
+          value = buffer.readBytes(buffer.readInt());
         } else if (thriftField.isEqualTo(TYPE)) {
-          switch (buffer.readInt()) {
+          int valueType = buffer.readInt();
+          switch (valueType) {
             case 0:
               isBoolean = true;
               break;
             case 6:
               isString = true;
+              break;
+            case 1:
+              isByte = true;
+              break;
+            case 2:
+              isI16 = true;
+              break;
+            case 3:
+              isI32 = true;
+              break;
+            case 4:
+              isI64 = true;
+              break;
+            case 5:
+              isDouble = true;
               break;
           }
         } else if (thriftField.isEqualTo(ENDPOINT)) {
@@ -158,8 +185,22 @@ public final class V1ThriftSpanReader {
       }
       if (key == null || value == null) return;
       if (isString) {
-        builder.addBinaryAnnotation(key, value, endpoint);
-      } else if (isBoolean && ONE.equals(value) && endpoint != null) {
+        String stringValue = new String(value, UTF_8);
+        builder.addBinaryAnnotation(key, stringValue, endpoint);
+      } else if (isI16){
+        Short I16Value = ByteBuffer.wrap(value).getShort();
+        builder.addBinaryAnnotation(key, I16Value.toString(), endpoint);
+      } else if (isI32){
+        Integer I32Value = ByteBuffer.wrap(value).getInt();
+        builder.addBinaryAnnotation(key, I32Value.toString(), endpoint);
+      } else if (isI64){
+        Long I64Value = ByteBuffer.wrap(value).getLong();
+        builder.addBinaryAnnotation(key, I64Value.toString(), endpoint);
+      } else if (isDouble){
+        Double doubleValue = ByteBuffer.wrap(value).getDouble();
+        builder.addBinaryAnnotation(key, doubleValue.toString(), endpoint);
+      }
+      else if (isBoolean && ONE.equals(new String(value, UTF_8)) && endpoint != null) {
         if (key.equals("sa") || key.equals("ca") || key.equals("ma")) {
           builder.addBinaryAnnotation(key, endpoint);
         }
