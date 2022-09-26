@@ -40,6 +40,8 @@ import java.util.Arrays;
 
 public final class V1ThriftSpanReader {
   static final String ONE = Character.toString((char) 1);
+  static final String ZERO = Character.toString((char) 0);
+
 
   public static V1ThriftSpanReader create() {
     return new V1ThriftSpanReader();
@@ -204,6 +206,20 @@ public final class V1ThriftSpanReader {
         if (key.equals("sa") || key.equals("ca") || key.equals("ma")) {
           builder.addBinaryAnnotation(key, endpoint);
         }
+      }
+      else if (isBoolean){
+        String stringValue = new String(value, UTF_8);
+        String stringBooleanValue = "";
+        if (ONE.equals(stringValue)){
+          stringBooleanValue = "true";
+        }
+        else if (ZERO.equals(stringValue)) {
+          stringBooleanValue = "false";
+        }
+        else if (stringValue.equals("0x01")){
+          stringBooleanValue = "true";
+        }
+        builder.addBinaryAnnotation(key, stringBooleanValue, endpoint);
       }
     }
   }
